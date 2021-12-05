@@ -1,4 +1,5 @@
 ﻿module Advent_Of_Code
+
 open System
 open Argu
 open DayOne
