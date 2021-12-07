@@ -5,6 +5,7 @@ open Argu
 open DayOne
 open DayTwo
 open DayThree
+open DayFour
 
 type CliArguments =
     | Day of int
@@ -37,6 +38,8 @@ let result =
         | (2, 2) -> (DayTwo().partTwo(data))
         | (3, 1) -> (DayThree().partOne(data))
         | (3, 2) -> (DayThree().partTwo(data))
+        | (4, 1) -> (DayFour().partOne(data))
+        | (4, 2) -> (DayFour().partTwo(data))
         | (_, _) -> raise (System.ArgumentException())
 
 
