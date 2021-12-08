@@ -16,7 +16,7 @@ let generateRange (start: int, finish: int) =
     if start < finish then
         seq {start..finish} |> Seq.toArray
     else
-        seq {finish..start} |> Seq.toArray
+        seq {finish..start} |> System.Linq.Enumerable.Reverse |> Seq.toArray
 
 type Line(start: Point, finish: Point) =
     member val start = start
@@ -25,36 +25,41 @@ type Line(start: Point, finish: Point) =
     member this.IsHorizontal =
         start.x = finish.x
 
-    member this.IsDiagonal =
-        start.x = finish.x || start.y = finish.y
+    member this.IsVertical =
+        start.y = finish.y
 
-    member this.Points = 
+    member this.Points(withDiagonal: bool) = 
         let mutable points = Seq.empty<Point>
 
-        if not this.IsDiagonal then
-            points
-        else
-            if this.IsHorizontal then
-                let range = generateRange(start.y, finish.y)
+        if this.IsHorizontal then
+            let range = generateRange(start.y, finish.y)
 
-                // TODO: how could i pipe this to generate the points?
-                for entry in range do
+            // TODO: how could i pipe this to generate the points?
+            for entry in range do
+                points <- points
+                    |> Seq.append [ Point(start.x, entry) ]
+        else if this.IsVertical then
+            let range = generateRange(start.x, finish.x)
+
+            for entry in range do
+                points <- points
+                    |> Seq.append [ Point(entry, start.y )]
+        else 
+            if withDiagonal then
+                let xRange = generateRange(start.x, finish.x)
+                let yRange = generateRange(start.y, finish.y)
+
+                for i in 0 .. xRange.Count() - 1 do
                     points <- points
-                        |> Seq.append [ Point(start.x, entry) ]
-            else
-                let range = generateRange(start.x, finish.x)
+                        |> Seq.append [Point(xRange[i], yRange[i])]
 
-                for entry in range do
-                    points <- points
-                        |> Seq.append [ Point(entry, start.y )]
-
-            points
+        points
 
     new(line: string) =
         Line(Point(line.Split(" -> ").First()), Point(line.Split(" -> ").Last()))
 
-let foo = Line("0,9 -> 5,9").Points |> Seq.map (fun point -> point.ToString) |> Seq.toArray
-let baz = Line("9,7 -> 7,7").Points |> Seq.map (fun point -> point.ToString) |> Seq.toArray
+let foo = Line("0,9 -> 5,9").Points(false) |> Seq.map (fun point -> point.ToString) |> Seq.toArray
+let baz = Line("9,7 -> 7,9").Points(true) |> Seq.map (fun point -> point.ToString) |> Seq.toArray
 let bar = seq { 1..2} |> Seq.toArray
 
 let parseInput (input: seq<string>) =
@@ -69,7 +74,7 @@ type DayFive() =
         let mutable crossings = Map.empty<Point, bool>
 
         for line in lines do
-            let points = line.Points
+            let points = line.Points(false)
             for point in points do
                 if crossings.ContainsKey(point) then
                     crossings <- crossings.Add(point, true)
@@ -81,4 +86,18 @@ type DayFive() =
         |> Seq.filter (fun x -> x = true)
         |> Seq.length
     override u.partTwo(input: seq<string>) =
-        0
+        let lines = input |> parseInput
+        let mutable crossings = Map.empty<Point, bool>
+
+        for line in lines do
+            let points = line.Points(true)
+            for point in points do
+                if crossings.ContainsKey(point) then
+                    crossings <- crossings.Add(point, true)
+                else
+                    crossings <- crossings.Add(point, false)
+
+        crossings.Values
+        |> Seq.cast<bool> 
+        |> Seq.filter (fun x -> x = true)
+        |> Seq.length
