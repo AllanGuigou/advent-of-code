@@ -1,11 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>_2021</RootNamespace>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="Base.fs" />
     <Compile Include="day1/DayOne.fs" />
@@ -16,11 +14,10 @@
     <Compile Include="day6/DaySix.fs" />
     <Compile Include="day7/DaySeven.fs" />
     <Compile Include="day8/Day8.fs" />
+    <Compile Include="day9/Day9.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Argu" Version="6.1.1" />
   </ItemGroup>
-
 </Project>
