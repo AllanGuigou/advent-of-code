@@ -74,8 +74,6 @@ type Day12() =
         paths
 
     override this.partTwo(input: seq<string>): int = 
-        let foo = input |> Seq.collect parseCaveConnection
-
         let caveSystem =
             input
             |> Seq.collect parseCaveConnection
@@ -83,7 +81,7 @@ type Day12() =
             |> Map.ofSeq
             |> Map.map (fun cave connections -> connections |> Seq.map (fun connection -> snd connection) |> Seq.toList)
 
-        // BFS using queue
+        // DFS 
         let mutable cavesToVisit: string list list = [ ["start"] ]
         let mutable paths = 0 
 
@@ -93,10 +91,10 @@ type Day12() =
 
             if current |> List.last = "end" then
                 paths <- paths + 1
-                printfn "%s" (pathToString current)
+                // printfn "%s" (pathToString current)
             else
                 for cave in caveSystem.[current |> List.last] do
                     if shouldVisitCave (current, cave, true) then
-                        cavesToVisit <- cavesToVisit @ [current @ [cave]]
+                        cavesToVisit <- (current @ [cave]) :: cavesToVisit
 
         paths
