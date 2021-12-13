@@ -27,6 +27,16 @@ let foldDot (dot: int * int, fold: string * int) =
     else
         dot
 
+let print (dots: Set<int * int>) =
+    for y = 0 to 5 do
+        for x = 0 to 40 do
+            if dots.Contains((x, y)) then
+                printf "#"
+            else
+                printf " "
+        printfn ""
+
+
 type Day13() =
     inherit Base.Day()
 
@@ -41,6 +51,7 @@ type Day13() =
         for dot in dots do
             result <- result |> Set.add (foldDot (dot, firstFold))
 
+        print result
         result |> Set.count
 
     override this.partTwo(input: seq<string>) : int =
@@ -48,11 +59,14 @@ type Day13() =
         let folds = parseFolds input
 
         for fold in folds do
-            let mutable tmp = dots
+            let mutable tmp = Set.empty<int * int>
 
             for dot in dots do
                 tmp <- tmp |> Set.add (foldDot (dot, fold))
 
             dots <- tmp
+
+        print dots
+        printfn ""
 
         dots |> Set.count
