@@ -14,6 +14,9 @@ printf "%A" (convertCharToBinary ('D'))
 let convertBinaryToInt (binary: char []) =
     System.Convert.ToInt32(binary |> System.String, 2)
 
+let convertBinaryToBig (binary: char []) =
+    System.Convert.ToUInt64(binary |> System.String, 2)
+
 let parseLiteralValue (transmission: char []) =
 
     let rec grabBits (transmission: char []) =
@@ -30,9 +33,21 @@ let parseLiteralValue (transmission: char []) =
 
     let bits = grabBits (transmission)
 
-    (0, transmission |> Array.skip (5 * (bits.Length / 4)))
+    (convertBinaryToBig bits, transmission |> Array.skip (5 * (bits.Length / 4)))
 
+let operateValues (values: uint64 list, typeId: int) =
+    match typeId with
+    | 0 -> values |> List.sum
+    | 1 -> values |> List.reduce (fun a b -> a * b)
+    | 2 -> values |> List.min
+    | 3 -> values |> List.max
+    // TODO: assert that greater than or less than only has two
+    // TODO: got my valeus backwards i think
+    | 5 -> if values.[1] > values.[0] then uint64(1) else uint64(0)  
+    | 6 -> if values.[1] < values.[0] then uint64(1) else uint64(0)  
+    | 7 -> if values.[1] = values.[0] then uint64(1) else uint64(0)  
 
+    | _ -> raise (System.ArgumentException())
 
 
 type Day16() =
@@ -40,7 +55,7 @@ type Day16() =
 
     let mutable sumOfVersions = 0
 
-    member this.parseOperator(transmission: char []) =
+    member this.parseOperator(transmission: char [], packetType: int) =
         let isTotalLengthType = transmission |> Array.head = '0'
 
         if isTotalLengthType then
@@ -51,16 +66,16 @@ type Day16() =
                 |> convertBinaryToInt
 
             let mutable packets = transmission |> Array.skip (16)
-            let mutable packetsValue = 0
+            let mutable values = List.empty
             let mutable processed = 0
 
             while processed < length do
                 let (value, (remaining: char [])) = this.parsePacket (packets)
                 processed <- processed + packets.Length - remaining.Length
                 packets <- remaining
-                packetsValue <- packetsValue + value
+                values <- value :: values
 
-            (packetsValue, packets)
+            (operateValues(values, packetType), packets)
         else
             let number =
                 transmission
@@ -70,17 +85,17 @@ type Day16() =
 
 
             let mutable packets = transmission |> Array.skip (12)
-            let mutable packetsValue = 0
+            let mutable values = List.empty
 
             for i = 0 to number - 1 do
                 let (value, remaining) = this.parsePacket (packets)
                 packets <- remaining
-                packetsValue <- packetsValue + value
+                values <- value :: values
 
-            (packetsValue, packets)
+            (operateValues(values, packetType), packets)
 
 
-    member this.parsePacket(transmission: char []) =
+    member this.parsePacket(transmission: char []): (uint64 * char []) =
         let version =
             transmission |> Array.take 3 |> convertBinaryToInt
 
@@ -100,7 +115,7 @@ type Day16() =
 
         else
             let (value, remaining) =
-                this.parseOperator (transmission |> Array.skip (3 + 3))
+                this.parseOperator (transmission |> Array.skip (3 + 3), packetType)
 
             (value, remaining)
 
@@ -115,4 +130,13 @@ type Day16() =
         sumOfVersions
 
 
-    override this.partTwo(input: seq<string>) : int = failwith "Not Implemented"
+    override this.partTwo(input: seq<string>) : int =
+        let transmission =
+            input
+            |> Seq.map Seq.toArray
+            |> Seq.head
+            |> Array.collect convertCharToBinary
+
+        let (value, _) = (this.parsePacket (transmission))
+        printfn "%u" value
+        0
