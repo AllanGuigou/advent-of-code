@@ -42,7 +42,6 @@ type Day17() =
     override this.partOne(input: seq<string>): int = 
         let target = input |> Seq.head |> parseTarget
 
-
         let mutable maxY = 0
 
         for xv = 0 to 200 do
@@ -61,4 +60,22 @@ type Day17() =
 
         maxY
     override this.partTwo(input: seq<string>): int = 
-        failwith "Not Implemented"
+        let target = input |> Seq.head |> parseTarget
+
+        let mutable initVelocities = []
+
+        for xv = 0 to 300 do
+            for yv = -400 to 400 do
+                let mutable position = (0,0)
+                let mutable velocity = (xv, yv)
+                while not (isPositionInTarget (position, target)) && not (isPositionPastTarget (position, target)) do
+                    printfn "%A" position
+                    let (p, v) = step(position, velocity)
+                    position <- p
+                    velocity <- v
+
+                if isPositionInTarget (position, target) then initVelocities <- (xv, yv) :: initVelocities
+
+        initVelocities |> List.length
+
+
