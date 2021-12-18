@@ -64,8 +64,9 @@ type Day17() =
 
         let mutable initVelocities = []
 
-        for xv = 0 to 300 do
-            for yv = -400 to 400 do
+        let (xt, yt) = target
+        for xv = 1 to (snd xt) do // cant go past the max x in a single step
+            for yv = fst yt to abs(fst yt) do // cant start lower than the min y and can't go past the abs min y
                 let mutable position = (0,0)
                 let mutable velocity = (xv, yv)
                 while not (isPositionInTarget (position, target)) && not (isPositionPastTarget (position, target)) do
